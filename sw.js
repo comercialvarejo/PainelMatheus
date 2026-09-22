@@ -22,14 +22,14 @@ var SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './assets/css/estilos.css',
-  './assets/js/app.js',
-  './assets/icons/favicon.svg',
-  './assets/icons/icon-192.png',
-  './assets/icons/icon-512.png',
-  './assets/icons/icon-maskable-512.png',
-  './assets/icons/apple-touch-icon.png',
-  './dados/index.json'
+  './estilos.css',
+  './app.js',
+  './favicon.svg',
+  './icon-192.png',
+  './icon-512.png',
+  './icon-maskable-512.png',
+  './apple-touch-icon.png',
+  './index.json'
 ];
 
 /* ------------------------------------------------------------- instalação */
@@ -124,8 +124,8 @@ self.addEventListener('fetch', function (ev) {
     return;
   }
 
-  // relatórios
-  if (url.pathname.indexOf('/dados/') !== -1) {
+  // relatórios: nesta versão os JSON ficam na raiz, junto com o resto
+  if (/\.json$/.test(url.pathname)) {
     ev.respondWith(redePrimeiro(ev, CACHE_DADOS));
     return;
   }

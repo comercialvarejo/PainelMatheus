@@ -4,10 +4,10 @@
 Valida os arquivos de dados do Painel de Rastreamento GTF.
 
 Uso:
-    python3 ferramentas/validar.py
+    python3 validar.py
 
 Confere:
-  - dados/index.json é JSON válido e tem a lista de relatórios
+  - index.json é JSON válido e tem a lista de relatórios
   - todo relatório listado existe de fato e é JSON válido
   - existe exatamente um relatório marcado como padrão
   - os campos obrigatórios estão presentes em cada relatório
@@ -21,8 +21,8 @@ import json
 import sys
 from pathlib import Path
 
-RAIZ = Path(__file__).resolve().parent.parent
-DADOS = RAIZ / "dados"
+RAIZ = Path(__file__).resolve().parent
+DADOS = RAIZ
 
 CAMPOS_META = ["id", "titulo", "periodo_inicio", "periodo_fim"]
 CAMPOS_SUMMARY = [
@@ -60,9 +60,9 @@ def carregar(caminho):
         with open(caminho, encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
-        erro(f"arquivo não encontrado: {caminho.relative_to(RAIZ)}")
+        erro(f"arquivo não encontrado: {caminho.name}")
     except json.JSONDecodeError as e:
-        erro(f"JSON inválido em {caminho.relative_to(RAIZ)}: linha {e.lineno}, {e.msg}")
+        erro(f"JSON inválido em {caminho.name}: linha {e.lineno}, {e.msg}")
     return None
 
 
@@ -135,7 +135,7 @@ def validar_relatorio(caminho, entrada):
 
 
 def main():
-    print(f"Validando dados em {DADOS.relative_to(RAIZ)}/\n")
+    print(f"Validando os dados em {DADOS}\n")
 
     indice = carregar(DADOS / "index.json")
     if indice is None:

@@ -6,7 +6,8 @@
 (function () {
   'use strict';
 
-  var CAMINHO_DADOS = './dados/';
+  // todos os arquivos ficam na raiz do repositório
+  var CAMINHO_DADOS = './';
   var IDLE_INICIAL = 40;
 
   var estado = {

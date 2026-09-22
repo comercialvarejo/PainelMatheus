@@ -5,16 +5,16 @@ Converte o "Relatório de Posições" exportado do rastreador (.xlsx) no JSON
 que o painel consome.
 
 USO
-    python3 ferramentas/converter.py caminho/do/relatorio.xlsx
+    python3 converter.py caminho/do/relatorio.xlsx
 
     # sobrescrevendo a casa e informando feriados e manutenção:
-    python3 ferramentas/converter.py rel.xlsx \\
+    python3 converter.py rel.xlsx \\
         --casa "Rua Tinguaçú Castanho" --cidade-casa "Arapongas" \\
         --feriado 2026-10-12=Nossa\\ Senhora\\ Aparecida \\
         --manutencao 2026-10-05:2026-10-08
 
-O arquivo gerado vai para dados/ com o nome AAAA-MM-DD_AAAA-MM-DD.json.
-Depois é só acrescentar a entrada correspondente em dados/index.json
+O arquivo gerado fica na mesma pasta, com o nome AAAA-MM-DD_AAAA-MM-DD.json.
+Depois é só acrescentar a entrada correspondente em index.json
 (o script imprime o trecho pronto para colar).
 
 FORMATO ESPERADO DA PLANILHA
@@ -48,7 +48,7 @@ try:
 except ImportError:
     sys.exit("Falta a biblioteca openpyxl. Instale com:  pip install openpyxl")
 
-RAIZ = Path(__file__).resolve().parent.parent
+RAIZ = Path(__file__).resolve().parent
 
 LIM_MICRO = 3          # micro-paradas no dia para virar alerta
 LIM_VEL = 5            # excessos de velocidade no dia para virar alerta
@@ -389,12 +389,12 @@ def converter(args):
         "pm_episodes": episodios,
     }
 
-    destino = RAIZ / "dados" / f"{rel_id}.json"
+    destino = RAIZ / f"{rel_id}.json"
     destino.write_text(json.dumps(rel, ensure_ascii=False, separators=(",", ":")),
                        encoding="utf-8")
 
     # ------------------------------------------------------------ resultado
-    print(f"\nGerado: dados/{destino.name}  ({destino.stat().st_size // 1024} KB)")
+    print(f"\nGerado: {destino.name}  ({destino.stat().st_size // 1024} KB)")
     print(f"  veículo {placa} · condutor {condutor}")
     print(f"  período {d0:%d/%m/%Y} a {d1:%d/%m/%Y}")
     print(f"  {len(dias)} dias · {len(base)} dias úteis cheios · {len(viagens)} paradas")
@@ -409,7 +409,7 @@ def converter(args):
           f"outro={noites['outro']} manutenção={noites['manut']}")
     print(f"  dias com alerta: {summary['days_with_flags']}")
 
-    print("\nAcrescente este trecho em dados/index.json, dentro de \"relatorios\":\n")
+    print("\nAcrescente este trecho em index.json, dentro de \"relatorios\":\n")
     print(json.dumps({
         "id": rel_id,
         "rotulo": f"{d0:%d/%m/%Y} – {d1:%d/%m/%Y}",
@@ -421,7 +421,7 @@ def converter(args):
         "padrao": True,
     }, ensure_ascii=False, indent=2))
     print('\nLembre de deixar "padrao": false nos relatórios antigos.')
-    print("Depois rode:  python3 ferramentas/validar.py")
+    print("Depois rode:  python3 validar.py")
 
 
 # ------------------------------------------------------------------- CLI

@@ -38,13 +38,19 @@ No GitHub, **New repository**, nome sugerido `painel-matheus`, criado **sem** RE
 
 ### 2. Enviar os arquivos
 
-**Pelo site:** abra o repositório → **uploading an existing file** → arraste **o conteúdo
-desta pasta** (os arquivos e as subpastas `assets/`, `dados/` e `ferramentas/`, não a
-pasta em si) → **Commit changes**.
+**Pelo site:** abra o repositório → **Add file → Upload files** → selecione **todos os
+arquivos desta pasta de uma vez** (Ctrl+A) → **Commit changes**.
+
+Esta versão **não tem pastas**: todos os arquivos ficam na raiz do repositório. É de
+propósito — o envio pelo site do GitHub costuma perder a estrutura de pastas quando se
+arrastam arquivos soltos, e aqui não há estrutura para perder.
 
 > ⚠️ O arquivo `.nojekyll` é essencial e fica invisível no Finder/Explorer por começar
-> com ponto. Se não subir, crie direto no GitHub: **Add file → Create new file**, nome
-> `.nojekyll`, conteúdo vazio, salvar.
+> com ponto. Se não subir junto, crie direto no GitHub: **Add file → Create new file**,
+> nome `.nojekyll`, conteúdo vazio, salvar.
+>
+> No Windows, para enxergá-lo: Explorador de Arquivos → aba **Exibir** → marque
+> **Itens ocultos**. No Mac: **Cmd + Shift + .** no Finder.
 
 **Pelo Git:**
 
@@ -89,16 +95,16 @@ rodar o conversor. Ele lê a planilha bruta, aplica todas as regras de análise 
 JSON já no formato do painel.
 
 ```bash
-python3 ferramentas/converter.py ~/Downloads/Listagem_Relatorio_de_Posicoes.xlsx \
+python3 converter.py ~/Downloads/Listagem_Relatorio_de_Posicoes.xlsx \
     --cidade-casa "Arapongas/PR" \
     --feriado 2026-10-12="Nossa Senhora Aparecida"
 ```
 
 O script imprime um resumo do que encontrou e o trecho JSON pronto para colar em
-`dados/index.json`. Depois:
+`index.json`. Depois:
 
 ```bash
-python3 ferramentas/validar.py     # confere se está tudo íntegro
+python3 validar.py     # confere se está tudo íntegro
 ```
 
 E faça o commit dos dois arquivos (o novo JSON e o `index.json` atualizado).
@@ -126,7 +132,7 @@ E faça o commit dos dois arquivos (o novo JSON e o `index.json` atualizado).
 - **Feriado**, **dia parcial** e **manutenção** aparecem no detalhamento como contexto,
   mas não contam como desvio nem entram em "Pontos de atenção".
 
-Para mudar os limiares, edite as constantes no topo de `ferramentas/converter.py`.
+Para mudar os limiares, edite as constantes no topo de `converter.py`.
 
 ### Se editar o código do app
 
@@ -137,7 +143,7 @@ var VERSAO = 'v2';   // era 'v1'
 ```
 
 Sem isso, quem já abriu o painel continua vendo a versão antiga em cache.
-Trocar apenas arquivos de `dados/` **não** exige mudar a versão.
+Trocar apenas arquivos `.json` de relatório **não** exige mudar a versão.
 
 > O `sw.js` também define `var APP = 'painel-matheus'`. Esse prefixo **precisa ser
 > diferente** do usado no painel do Tiago: o cache do navegador é por domínio, não por
@@ -172,25 +178,33 @@ de fora, para não distorcer o resultado.
 
 ## Estrutura dos arquivos
 
+Todos na raiz do repositório, sem subpastas:
+
 ```
-painel-matheus/
-├── index.html                  estrutura da página (não contém dados)
-├── manifest.webmanifest        nome, ícones e cores do app
-├── sw.js                       service worker — offline e cache
-├── .nojekyll                   impede o GitHub de processar a pasta como blog
-├── .gitignore
-├── README.md
-├── assets/
-│   ├── css/estilos.css         todo o visual, responsivo (mobile-first)
-│   ├── js/app.js               carrega os dados e monta a interface
-│   └── icons/                  ícones do app
-├── dados/
-│   ├── index.json              lista de relatórios disponíveis
-│   └── 2026-09-01_2026-09-22.json
-└── ferramentas/
-    ├── converter.py            .xlsx do rastreador  ->  JSON do painel
-    └── validar.py              confere os JSONs antes de publicar
+index.html                    estrutura da página (não contém dados)
+estilos.css                   todo o visual, responsivo (mobile-first)
+app.js                        carrega os dados e monta a interface
+manifest.webmanifest          nome, ícones e cores do app
+sw.js                         service worker — offline e cache
+.nojekyll                     impede o GitHub de processar a pasta como blog
+.gitignore
+README.md
+
+index.json                    lista de relatórios disponíveis
+2026-09-01_2026-09-22.json    o relatório em si
+
+favicon.svg                   ícones do app
+icon-192.png
+icon-512.png
+icon-maskable-512.png
+apple-touch-icon.png
+
+converter.py                  .xlsx do rastreador  ->  JSON do painel
+validar.py                    confere os JSONs antes de publicar
 ```
+
+Não confunda **`index.html`** (a página) com **`index.json`** (a lista de relatórios).
+São arquivos diferentes, com papéis diferentes.
 
 O formato completo do JSON está documentado no README do painel do Tiago; os dois
 repositórios usam exatamente o mesmo esquema.
@@ -231,7 +245,7 @@ Alternativas que mantêm o mesmo app funcionando:
 | **Uso local** | Rodar com `python3 -m http.server`, sem publicar. |
 
 Se optar por manter público, ao menos considere reduzir o nome do motorista ao primeiro
-nome e remover o endereço residencial dos arquivos em `dados/`.
+nome e remover o endereço residencial do arquivo `.json` do relatório.
 
 ---
 
