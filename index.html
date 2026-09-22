@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Painel de Rastreamento — Matheus</title>
+<meta name="description" content="Painel de acompanhamento de rastreamento veicular — Matheus (TBM3G64).">
+
+<!-- PWA -->
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#0f1115">
+<meta name="color-scheme" content="dark">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Painel Matheus">
+<link rel="icon" href="./assets/icons/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png">
+
+<link rel="stylesheet" href="./assets/css/estilos.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div class="app-header-inner">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <div class="brand-text">
+        <h1 id="appTitle">Painel de Rastreamento</h1>
+        <p id="appSubtitle" class="muted">Carregando…</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <label class="select-wrap">
+        <span class="sr-only">Período do relatório</span>
+        <select id="periodSelect" aria-label="Período do relatório"></select>
+      </label>
+      <button id="installBtn" class="btn-install hidden" type="button">Instalar app</button>
+    </div>
+  </div>
+  <nav class="section-nav" id="sectionNav" aria-label="Seções do painel">
+    <a href="#sec-resumo" class="active">Resumo</a>
+    <a href="#sec-alertas">Alertas</a>
+    <a href="#sec-pernoite">Pernoites</a>
+    <a href="#sec-primeiro-maio">1º de Maio</a>
+    <a href="#sec-geo">Distâncias</a>
+    <a href="#sec-ocioso">Motor ocioso</a>
+    <a href="#sec-dias">Por dia</a>
+  </nav>
+</header>
+
+<main class="wrap" id="main" aria-busy="true">
+
+  <div id="loadState" class="load-state">
+    <div class="spinner" aria-hidden="true"></div>
+    <p>Carregando dados do relatório…</p>
+  </div>
+
+  <div id="errorState" class="error-state hidden" role="alert">
+    <h2>Não foi possível carregar os dados</h2>
+    <p id="errorMsg" class="muted"></p>
+    <button type="button" onclick="location.reload()">Tentar novamente</button>
+  </div>
+
+  <div id="content" class="hidden">
+
+    <section class="section-anchor" id="sec-resumo">
+      <div class="kpis" id="kpis"></div>
+    </section>
+
+    <section class="section section-anchor" id="sec-alertas">
+      <h2>⚠️ Pontos de atenção <span class="tag" id="flagCount"></span></h2>
+      <p class="muted sub">Dias com padrão fora do esperado: saída tardia, ausência de deslocamento, retorno tardio ou pernoite em local incomum.</p>
+      <ul class="flags" id="flagList"></ul>
+    </section>
+
+    <div class="grid2">
+      <section class="section section-anchor" id="sec-pernoite">
+        <h2>🌙 Onde o veículo pernoita</h2>
+        <div id="overnightBars"></div>
+        <div class="legend" id="overnightLegend"></div>
+        <p class="muted sub-top" id="overnightNote"></p>
+      </section>
+
+      <section class="section">
+        <h2>📊 Rotina — médias em dias úteis</h2>
+        <table class="kv">
+          <tbody>
+            <tr><td>Saída média para trabalho</td><td id="mAvgDep"></td></tr>
+            <tr><td>Retorno médio</td><td id="mAvgRet"></td></tr>
+            <tr><td>Paradas médias / dia</td><td id="mAvgStops"></td></tr>
+            <tr><td>Km médios / dia</td><td id="mAvgKm"></td></tr>
+            <tr><td>Km total no período</td><td id="mTotalKm"></td></tr>
+            <tr><td>Dias úteis sem nenhuma movimentação</td><td class="bad" id="mNoMove"></td></tr>
+            <tr><td>Total de excessos de velocidade</td><td class="warn" id="mSpeed"></td></tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+
+    <section class="section section-anchor" id="sec-primeiro-maio">
+      <h2>📍 <span id="pmTitleAddr">Endereço alternativo</span> — frequência e padrão</h2>
+      <p class="muted sub">Presença registrada em <b id="pmDays"></b> dias distintos no período (de <b id="pmTotalDays"></b> dias totais). Cada "episódio" vai da chegada até a saída, separando pernoites de simples passagens.</p>
+      <div class="kpis compact">
+        <div class="kpi"><div class="v" id="pmWeekend"></div><div class="l">Pernoites de fim de semana</div></div>
+        <div class="kpi"><div class="v" id="pmNight"></div><div class="l">Pernoites em dia de semana</div></div>
+        <div class="kpi"><div class="v" id="pmQuick"></div><div class="l">Passagens rápidas</div></div>
+        <div class="kpi"><div class="v" id="pmQuickEvening"></div><div class="l">Dessas, entre 16h e 19h</div></div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Chegada</th><th>Saída</th><th>Duração</th><th>Tipo</th></tr></thead>
+          <tbody id="pmTableBody"></tbody>
+        </table>
+      </div>
+      <p class="muted sub-top">Padrão identificado: além dos pernoites, há <b id="pmQuickEvening2"></b> passagens curtas tipicamente entre <b>16h e 19h</b> — compatível com uma parada no fim da rota, antes de seguir para casa. Há também passagens no meio do dia, sem relação aparente com início ou fim de expediente.</p>
+    </section>
+
+    <section class="section section-anchor" id="sec-geo">
+      <h2>🗺️ Distância dos endereços incomuns até a casa</h2>
+      <p class="muted sub">Cada endereço incomum foi geolocalizado e teve a distância real calculada até a casa e até o endereço alternativo.</p>
+      <div class="table-scroll">
+        <table class="geo-table">
+          <thead><tr><th>Endereço incomum</th><th>Até a casa</th><th>Até o alternativo</th><th>Direção</th><th>Interpretação</th></tr></thead>
+          <tbody id="geoTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section section-anchor" id="sec-ocioso">
+      <h2>⏱️ Motor ligado sem deslocamento <span class="tag" id="idleCount"></span></h2>
+      <p class="muted sub">Ciclos de ignição ligada→desligada com menos de 1 km percorrido. Média de <b id="idleAvg"></b> min; <b id="idleOver15"></b> ocorrências passaram de 15 minutos.</p>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Data</th><th>Início</th><th>Fim</th><th>Duração</th><th>Local</th></tr></thead>
+          <tbody id="idleTableBody"></tbody>
+        </table>
+      </div>
+      <button type="button" class="btn-more hidden" id="idleMoreBtn"></button>
+    </section>
+
+    <section class="section section-anchor" id="sec-dias">
+      <h2>📅 Detalhamento por dia <span class="tag">toque numa linha para ver as paradas</span></h2>
+      <div class="controls">
+        <input id="searchBox" type="search" placeholder="Buscar data, cidade ou endereço das paradas…" aria-label="Buscar dias">
+        <label class="check"><input type="checkbox" id="onlyFlags"> Só dias com alerta</label>
+        <label class="check"><input type="checkbox" id="hideWeekend" checked> Ocultar fins de semana</label>
+      </div>
+      <p class="muted result-count" id="dayCount"></p>
+      <div class="table-scroll">
+        <table class="day-table">
+          <thead>
+            <tr>
+              <th>Data</th><th>Dia</th><th>Pernoite anterior</th><th>1ª saída</th><th>Retorno</th>
+              <th>Paradas</th><th>Km</th><th>Alertas</th>
+            </tr>
+          </thead>
+          <tbody id="dayTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="app-footer">
+  <p>Gerado a partir dos relatórios de posição do rastreador · "Paradas" = ciclos de ignição ligada→desligada · Deslocamentos &lt;1&nbsp;km entre ignições são marcados como "sem deslocamento relevante".</p>
+  <p class="muted" id="footerMeta"></p>
+</footer>
+
+<script src="./assets/js/app.js"></script>
+</body>
+</html>
